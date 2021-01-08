@@ -37,7 +37,7 @@ stop(_State) ->
 load_env() ->
     {ok, Timeout} = application:get_env(?APP, query_timeout),
     Type = proplists:get_value(type, application:get_env(?APP, server, [])),
-    PubCmd = application:get_env(?APP, pub_cmd),
+    {ok, PubCmd} = application:get_env(?APP, pub_cmd),
     #{pub_cmd => PubCmd,
       timeout => Timeout,
       type => Type,
