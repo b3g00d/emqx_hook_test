@@ -14,7 +14,7 @@
 %% limitations under the License.
 %%--------------------------------------------------------------------
 
--module(emqx_auth_redis_cli).
+-module(emqx_hook_test_cli).
 
 -behaviour(ecpool_worker).
 
