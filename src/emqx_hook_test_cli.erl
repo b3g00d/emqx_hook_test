@@ -62,8 +62,10 @@ connect(Opts) ->
 -spec(q(atom(), atom(), string(), binary(), timeout())
       -> {ok, undefined | binary() | list()} | {error, atom() | binary()}).
 q(Pool, Type, CmdStr, JsonPayload, Timeout) ->
+    io:format("Print cmdstr ~p~n", [CmdStr]),
     Cmd = string:tokens(CmdStr, " "),
     CmdWithPayload = lists:append(Cmd, [JsonPayload]),
+    io:format("Print payload ~p~n", [CmdWithPayload]),
     case Type of
         cluster -> eredis_cluster:q(Pool, CmdWithPayload);
         _ -> ecpool:with_client(Pool, fun(C) -> eredis:q(C, CmdWithPayload, Timeout) end)
