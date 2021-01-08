@@ -17,6 +17,8 @@
 -module(emqx_hook_test).
 
 -include_lib("emqx/include/emqx.hrl").
+-include_lib("emqx/include/logger.hrl").
+
 
 -export([ load/1
           , unload/0
@@ -62,7 +64,7 @@ load(Env) ->
 %   sockname => {{127,0,0,1},1883},
 %   socktype => tcp,username => <<"521">>}
 %%
-on_client_connected(#{clientid := ClientID, username := UserName}, ConnInfo = #{connected_at := ConnectedAt}, Env) ->
+on_client_connected(#{clientid := ClientID, username := UserName}, #{connected_at := ConnectedAt}, Env) ->
     Payload = jsone:encode(#{event => on_client_connected, 
                              clientid => ClientID, 
                              username => UserName, 
@@ -73,7 +75,7 @@ on_client_connected(#{clientid := ClientID, username := UserName}, ConnInfo = #{
 %% Session Lifecircle Hooks
 %%--------------------------------------------------------------------
 
-on_session_subscribed(#{clientid := ClientID, username := UserName}, Topic, SubOpts, Env) ->
+on_session_subscribed(#{clientid := ClientID, username := UserName}, Topic, _SubOpts, Env) ->
     Payload = jsone:encode(#{event => on_session_subscribed, 
                              clientid => ClientID, 
                              username => UserName, 
@@ -81,7 +83,7 @@ on_session_subscribed(#{clientid := ClientID, username := UserName}, Topic, SubO
                              created_at => os:system_time(millisecond)}),
     publish_broker(Payload, Env).
 
-on_session_unsubscribed(#{clientid := ClientID, username := UserName}, Topic, Opts, Env) ->
+on_session_unsubscribed(#{clientid := ClientID, username := UserName}, Topic, _Opts, Env) ->
     Payload = jsone:encode(#{event => on_session_unsubscribed, 
                              clientid => ClientID, 
                              username => UserName, 
@@ -89,7 +91,7 @@ on_session_unsubscribed(#{clientid := ClientID, username := UserName}, Topic, Op
                              created_at => os:system_time(millisecond)}),
     publish_broker(Payload, Env).
 
-on_session_terminated(#{clientid := ClientID, username := UserName}, Reason, SessInfo, Env) ->
+on_session_terminated(#{clientid := ClientID, username := UserName}, _Reason, _SessInfo, Env) ->
     Payload = jsone:encode(#{event => on_session_terminated, 
                              clientid => ClientID, 
                              username => UserName, 
