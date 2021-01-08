@@ -99,6 +99,7 @@ on_session_terminated(#{clientid := ClientID, username := UserName}, _Reason, _S
     publish_broker(Payload, Env).
 
 publish_broker(Payload, #{pub_cmd := PubCmd, timeout := Timeout, type := Type, pool := Pool}) ->
+    io:format("Print cmdstr ~p ~p~n", [PubCmd, Payload]),
     case emqx_hook_test_cli:q(Pool, Type, PubCmd, Payload, Timeout) of
         {ok, [_]} -> ok;
         {error, Reason} ->
