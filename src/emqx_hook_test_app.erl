@@ -14,13 +14,31 @@
 %% limitations under the License.
 %%--------------------------------------------------------------------
 
--module(emqx_cli_demo).
+-module(emqx_hook_test_app).
 
--export([cmd/1]).
+-behaviour(application).
 
-cmd(["arg1", "arg2"]) ->
-    emqx_ctl:print("ok");
+-emqx_plugin(?MODULE).
 
-cmd(_) ->
-    emqx_ctl:usage([{"cmd arg1 arg2", "cmd demo"}]).
+-include("emqx_hook_test.hrl").
 
+-export([ start/2
+	  , stop/1
+	]).
+
+start(_StartType, _StartArgs) ->
+    {ok, Sup} = emqx_hook_test_sup:start_link(),
+    emqx_hook_test:load(load_env()),
+    {ok, Sup}.
+
+stop(_State) ->
+    emqx_hook_test:unload().
+
+load_env() ->
+    {ok, Timeout} = application:get_env(?APP, query_timeout),
+    Type = proplists:get_value(type, application:get_env(?APP, server, [])),
+    PubCmd = application:get_env(?APP, pub_cmd),
+    #{pub_cmd => PubCmd,
+      timeout => Timeout,
+      type => Type,
+      pool => ?APP}.

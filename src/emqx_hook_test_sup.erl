@@ -14,21 +14,29 @@
 %% limitations under the License.
 %%--------------------------------------------------------------------
 
--module(emqx_plugin_template_app).
+-module(emqx_plugin_template_sup).
 
--behaviour(application).
+-behaviour(supervisor).
 
--emqx_plugin(?MODULE).
+-include("emqx_hook_test.hrl").
 
--export([ start/2
-        , stop/1
-        ]).
+-export([start_link/0]).
 
-start(_StartType, _StartArgs) ->
-    {ok, Sup} = emqx_plugin_template_sup:start_link(),
-    emqx_plugin_template:load(application:get_all_env()),
-    {ok, Sup}.
+-export([init/1]).
 
-stop(_State) ->
-    emqx_plugin_template:unload().
+start_link() ->
+    supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
+init([]) ->
+    {ok, Server} = application:get_env(?APP, server),
+    {ok, {{one_for_all, 0, 1}, pool_spec(Server)}}.
+
+pool_spec(Server) ->
+    Options = application:get_env(?APP, options, []),
+    case proplists:get_value(type, Server) of
+        cluster ->
+            {ok, _} = eredis_cluster:start_pool(?APP, Server ++ Options),
+            [];
+        _ ->
+            [ecpool:pool_spec(?APP, ?APP, emqx_hook_test_cli, Server ++ Options)]
+    end.
