@@ -24,11 +24,6 @@
           , unload/0
         ]).
 
-%% Client Lifecircle Hooks
--export([
-         on_client_connected/3
-        ]).
-
 %% Session Lifecircle Hooks
 -export([
          on_session_subscribed/4
@@ -38,7 +33,6 @@
 
 %% Called when the plugin application start
 load(Env) ->
-    emqx:hook('client.connected',    {?MODULE, on_client_connected, [Env]}),
     emqx:hook('session.subscribed',  {?MODULE, on_session_subscribed, [Env]}),
     emqx:hook('session.unsubscribed',{?MODULE, on_session_unsubscribed, [Env]}),
     emqx:hook('session.terminated',  {?MODULE, on_session_terminated, [Env]}).
@@ -64,12 +58,6 @@ load(Env) ->
 %   sockname => {{127,0,0,1},1883},
 %   socktype => tcp,username => <<"521">>}
 %%
-on_client_connected(#{clientid := ClientID, username := UserName}, #{connected_at := ConnectedAt}, Env) ->
-    Payload = jsone:encode(#{event => on_client_connected, 
-                             clientid => ClientID, 
-                             username => UserName, 
-                             created_at => ConnectedAt}),
-    publish_broker(Payload, Env).
 
 %%--------------------------------------------------------------------
 %% Session Lifecircle Hooks
@@ -103,14 +91,13 @@ publish_broker(Payload, #{pub_cmd := PubCmd, timeout := Timeout, type := Type, p
     case emqx_hook_test_cli:q(Pool, Type, PubCmd, Payload, Timeout) of
         {ok, _} -> ok;
         {error, Reason} ->
-            ?LOG(error, "[Redis] do_check_acl error: ~p", [Reason]),
+            ?LOG(error, "[Redis] do_hook error: ~p", [Reason]),
             ok
     end.
 
 
 %% Called when the plugin application stop
 unload() ->
-    emqx:unhook('client.connected',    {?MODULE, on_client_connected}),
     emqx:unhook('session.subscribed',  {?MODULE, on_session_subscribed}),
     emqx:unhook('session.unsubscribed',{?MODULE, on_session_unsubscribed}),
     emqx:unhook('session.terminated',  {?MODULE, on_session_terminated}).
