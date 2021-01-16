@@ -31,6 +31,9 @@
          , on_session_terminated/4
         ]).
 
+%% For spawn
+-export([publish_broker/2])
+
 %% Called when the plugin application start
 load(Env) ->
     emqx:hook('session.subscribed',  {?MODULE, on_session_subscribed, [Env]}),
