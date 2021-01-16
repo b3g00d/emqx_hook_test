@@ -64,27 +64,30 @@ load(Env) ->
 %%--------------------------------------------------------------------
 
 on_session_subscribed(#{clientid := ClientID, username := UserName}, Topic, _SubOpts, Env) ->
-    Payload = jsone:encode(#{event => on_session_subscribed, 
-                             clientid => ClientID, 
-                             username => UserName, 
-                             topic => Topic, 
+    Payload = jsone:encode(#{event => on_session_subscribed,
+                             clientid => ClientID,
+                             username => UserName,
+                             topic => Topic,
                              created_at => os:system_time(millisecond)}),
-    publish_broker(Payload, Env).
+    spawn(?MODULE, publish_broker, [Payload, Env]),
+    ok.
 
 on_session_unsubscribed(#{clientid := ClientID, username := UserName}, Topic, _Opts, Env) ->
-    Payload = jsone:encode(#{event => on_session_unsubscribed, 
-                             clientid => ClientID, 
-                             username => UserName, 
-                             topic => Topic, 
+    Payload = jsone:encode(#{event => on_session_unsubscribed,
+                             clientid => ClientID,
+                             username => UserName,
+                             topic => Topic,
                              created_at => os:system_time(millisecond)}),
-    publish_broker(Payload, Env).
+    spawn(?MODULE, publish_broker, [Payload, Env]),
+    ok.
 
 on_session_terminated(#{clientid := ClientID, username := UserName}, _Reason, _SessInfo, Env) ->
-    Payload = jsone:encode(#{event => on_session_terminated, 
-                             clientid => ClientID, 
-                             username => UserName, 
+    Payload = jsone:encode(#{event => on_session_terminated,
+                             clientid => ClientID,
+                             username => UserName,
                              created_at => os:system_time(millisecond)}),
-    publish_broker(Payload, Env).
+    spawn(?MODULE, publish_broker, [Payload, Env]),
+    ok.
 
 publish_broker(Payload, #{pub_cmd := PubCmd, timeout := Timeout, type := Type, pool := Pool}) ->
     io:format("Print cmdstr ~p ~p~n", [PubCmd, Payload]),
