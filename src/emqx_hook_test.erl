@@ -32,7 +32,8 @@
         ]).
 
 %% For spawn
--export([publish_broker/2])
+-export([publish_broker/2]).
+
 
 %% Called when the plugin application start
 load(Env) ->
